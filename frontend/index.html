@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PhishLens | Phishing Risk Assessment Engine</title>
+  <style>
+    :root { --bg:#07111f; --panel:#101d2f; --line:#26364d; --text:#ecf3fb; --muted:#99aabd; --cyan:#50d5ef; --low:#4ade80; --medium:#fbbf24; --high:#fb923c; --critical:#fb7185; }
+    * { box-sizing: border-box; } body { margin:0; min-height:100vh; color:var(--text); background:radial-gradient(circle at 15% 0%, #15345b 0, transparent 34rem),var(--bg); font:15px/1.5 Inter, ui-sans-serif, system-ui, sans-serif; }
+    .shell { max-width:1200px; margin:auto; padding:32px 22px 56px; } header { display:flex; justify-content:space-between; gap:20px; align-items:flex-start; margin-bottom:28px; } .brand { display:flex; gap:13px; align-items:center; } .mark { display:grid; place-items:center; width:43px; height:43px; border:1px solid #4bc6e3; border-radius:12px; color:var(--cyan); font-size:23px; } h1 { margin:0; font-size:25px; letter-spacing:-.5px; } .sub { color:var(--muted); margin:3px 0 0; } .status { color:#8ce6c0; border:1px solid #286249; padding:6px 10px; border-radius:99px; font-size:12px; white-space:nowrap; }
+    .grid { display:grid; grid-template-columns:1.05fr .95fr; gap:20px; } .panel { background:rgba(16,29,47,.94); border:1px solid var(--line); border-radius:16px; padding:20px; box-shadow:0 15px 45px #0002; } h2 { font-size:15px; margin:0 0 6px; } .note { color:var(--muted); font-size:13px; margin:0 0 14px; } textarea { width:100%; min-height:290px; resize:vertical; color:var(--text); background:#091525; border:1px solid #33465e; padding:14px; border-radius:10px; font:13px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; } textarea:focus { outline:2px solid #287b99; border-color:transparent; } .controls { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:13px; } button { cursor:pointer; border:0; border-radius:9px; padding:10px 14px; font-weight:700; } .primary { color:#03212a; background:var(--cyan); } .primary:disabled { opacity:.6; cursor:wait; } .secondary { color:var(--muted); background:transparent; border:1px solid #3a4e66; } .micro { font-size:12px; color:var(--muted); }
+    .empty { display:grid; min-height:365px; place-items:center; text-align:center; color:var(--muted); border:1px dashed #34475f; border-radius:12px; padding:35px; } .result { display:none; } .result.visible { display:block; } .risk { display:flex; align-items:center; gap:18px; padding-bottom:18px; border-bottom:1px solid var(--line); } .dial { width:102px; height:102px; border-radius:50%; display:grid; place-content:center; border:8px solid var(--severity); color:var(--severity); font-size:25px; font-weight:800; } .dial small { color:var(--muted); text-align:center; font-size:10px; font-weight:500; } .eyebrow { color:var(--muted); font-size:11px; letter-spacing:1px; text-transform:uppercase; } .verdict { font-size:22px; font-weight:800; text-transform:capitalize; margin:3px 0; } .severity { color:var(--severity); font-weight:700; text-transform:uppercase; font-size:12px; letter-spacing:.8px; }
+    .section { padding-top:17px; } .section h3 { font-size:13px; margin:0 0 9px; } .signals { display:grid; gap:8px; max-height:230px; overflow:auto; } .signal { border:1px solid #2b4059; background:#0b1727; border-left:3px solid var(--signal); border-radius:7px; padding:9px; } .signal b { font-size:13px; display:block; } .signal span { display:block; color:var(--muted); font-size:12px; overflow-wrap:anywhere; } .signal em { float:right; font-style:normal; color:var(--signal); font-size:11px; text-transform:uppercase; } ul { margin:0; padding-left:18px; color:#cbd7e6; font-size:13px; } li+li { margin-top:5px; } .terms { display:flex; flex-wrap:wrap; gap:6px; } .terms code { background:#17304a; color:#a9e9f6; padding:3px 6px; border-radius:5px; font-size:11px; } .feedback { display:flex; gap:7px; flex-wrap:wrap; margin-top:10px; } .feedback button { font-size:12px; padding:6px 8px; background:#1b2a3e; color:#cfdae7; border:1px solid #38506a; }
+    .history { margin-top:20px; } .history-list { display:grid; gap:8px; } .history-item { display:flex; justify-content:space-between; align-items:center; padding:10px; border:1px solid #2a3c53; border-radius:8px; font-size:13px; } .badge { font-size:11px; padding:3px 7px; border-radius:99px; color:#0b1625; font-weight:800; text-transform:uppercase; background:var(--severity); } .error { color:#fecaca; margin-top:10px; font-size:13px; }
+    @media (max-width:850px) { .grid { grid-template-columns:1fr; } header { flex-direction:column; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div class="brand"><div class="mark">⌁</div><div><h1>PhishLens</h1><p class="sub">Phishing Risk Assessment Engine</p></div></div>
+      <div class="status">● Local analysis · URLs are never opened</div>
+    </header>
+    <section class="grid">
+      <article class="panel">
+        <h2>Analyze a message</h2>
+        <p class="note">Paste plain email content or raw <code>.eml</code> text. Raw content is analyzed in memory and is not kept in history.</p>
+        <form id="analysis-form">
+          <textarea id="email" required maxlength="200000" placeholder="From: alerts@example.com&#10;Reply-To: ...&#10;Subject: ...&#10;&#10;Paste an email here."></textarea>
+          <div class="controls"><button class="secondary" type="button" id="sample">Load sample</button><span class="micro" id="count">0 / 200,000</span><button class="primary" id="submit" type="submit">Run threat triage</button></div>
+        </form>
+        <p class="error" id="error" hidden></p>
+      </article>
+      <aside class="panel">
+        <div id="empty" class="empty"><div><strong>Evidence, not a black box.</strong><br><span>Model probability is combined with header, URL, sender, attachment, and social-engineering indicators.</span></div></div>
+        <div class="result" id="result">
+          <div class="risk"><div class="dial"><span id="score">0</span><small>/ 100 risk</small></div><div><div class="eyebrow">Assessment</div><div class="verdict" id="verdict"></div><div class="severity" id="severity"></div></div></div>
+          <div class="section"><h3>Evidence signals</h3><div class="signals" id="signals"></div></div>
+          <div class="section"><h3>Recommended response</h3><ul id="actions"></ul></div>
+          <div class="section"><h3>Model context</h3><p class="micro" id="model-context"></p><div class="terms" id="terms"></div></div>
+          <div class="section"><h3>Analyst feedback</h3><div class="feedback"><button data-feedback="confirmed_phishing">Confirmed phishing</button><button data-feedback="confirmed_safe">Confirmed safe</button><button data-feedback="needs_review">Needs review</button></div><p class="micro" id="feedback-state"></p></div>
+        </div>
+      </aside>
+    </section>
+    <section class="panel history"><h2>Recent local assessments</h2><p class="note">Only a message hash, score, evidence, timestamp, and optional analyst outcome are retained.</p><div class="history-list" id="history"><span class="micro">Loading local audit history…</span></div></section>
+  </main>
+  <script>
+    const API = window.PHISHLENS_API_URL || 'http://127.0.0.1:8000';
+    const form = document.querySelector('#analysis-form'), input = document.querySelector('#email'), submit = document.querySelector('#submit');
+    let activeAnalysisId = null;
+    const sample = `From: Microsoft Account <security@micros0ft-alerts.example>\nReply-To: verify@credential-check.example\nSubject: Urgent: verify your account within 24 hours\nAuthentication-Results: spf=fail dkim=fail dmarc=fail\n\nYour account will be suspended. Sign in now at http://192.0.2.10/verify?account=user and provide your password.`;
+    input.addEventListener('input', () => document.querySelector('#count').textContent = `${input.value.length.toLocaleString()} / 200,000`);
+    document.querySelector('#sample').onclick = () => { input.value = sample; input.dispatchEvent(new Event('input')); };
+    form.addEventListener('submit', async event => {
+      event.preventDefault(); document.querySelector('#error').hidden = true; submit.disabled = true; submit.textContent = 'Analyzing…';
+      try { const response = await fetch(`${API}/api/v1/analyze`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:input.value}) }); if (!response.ok) throw new Error((await response.json()).detail || 'Analysis request failed'); render(await response.json()); await loadHistory(); }
+      catch (error) { const node = document.querySelector('#error'); node.textContent = `Unable to analyze: ${error.message}`; node.hidden = false; }
+      finally { submit.disabled = false; submit.textContent = 'Run threat triage'; }
+    });
+    function render(data) {
+      activeAnalysisId = data.analysis_id; document.querySelector('#empty').style.display = 'none'; const result = document.querySelector('#result'); result.classList.add('visible');
+      const color = `var(--${data.severity})`; result.style.setProperty('--severity', color); document.querySelector('#score').textContent = data.risk_score; document.querySelector('#verdict').textContent = data.verdict.replace('_', ' '); document.querySelector('#severity').textContent = `${data.severity} severity`;
+      const signals = document.querySelector('#signals'); signals.innerHTML = data.evidence.signals.length ? data.evidence.signals.map(s => `<div class="signal" style="--signal:var(--${s.severity === 'high' ? 'critical' : s.severity})"><em>${s.severity}</em><b>${escapeHtml(s.title)}</b><span>${escapeHtml(s.evidence)}</span></div>`).join('') : '<p class="micro">No deterministic high-risk indicators were found.</p>';
+      document.querySelector('#actions').innerHTML = data.recommended_actions.map(action => `<li>${escapeHtml(action)}</li>`).join(''); document.querySelector('#model-context').textContent = `${data.model.name}: ${data.model.phishing_probability}% phishing probability.`; document.querySelector('#terms').innerHTML = data.model.top_present_terms.length ? data.model.top_present_terms.map(term => `<code>${escapeHtml(term)}</code>`).join('') : '<span class="micro">No high-impact model terms identified.</span>'; document.querySelector('#feedback-state').textContent = '';
+    }
+    document.querySelectorAll('[data-feedback]').forEach(button => button.onclick = async () => { if (!activeAnalysisId) return; const state = document.querySelector('#feedback-state'); try { const response = await fetch(`${API}/api/v1/analyses/${activeAnalysisId}/feedback`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({outcome:button.dataset.feedback})}); if (!response.ok) throw new Error('Feedback was not saved'); state.textContent = 'Feedback recorded for this assessment.'; await loadHistory(); } catch { state.textContent = 'Could not save feedback.'; } });
+    async function loadHistory() { try { const response = await fetch(`${API}/api/v1/history?limit=8`); if (!response.ok) throw new Error(); const data = await response.json(); document.querySelector('#history').innerHTML = data.items.length ? data.items.map(item => `<div class="history-item" style="--severity:var(--${item.severity})"><span><b>${item.risk_score}/100</b> · ${item.signal_count} evidence signal(s)${item.feedback ? ` · ${item.feedback.replace('_', ' ')}` : ''}</span><span class="badge">${item.severity}</span></div>`).join('') : '<span class="micro">No analyses recorded yet.</span>'; } catch { document.querySelector('#history').innerHTML = '<span class="micro">Start the API to view local audit history.</span>'; } }
+    function escapeHtml(value) { const node = document.createElement('div'); node.textContent = value; return node.innerHTML; }
+    loadHistory();
+  </script>
+</body>
+</html>
